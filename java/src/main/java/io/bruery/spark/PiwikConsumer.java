@@ -21,21 +21,18 @@ import org.apache.spark.streaming.Durations;
 import org.json.simple.parser.*;
 import org.json.simple.*;
 
+import com.mongodb.*;
+import org.bson.Document;
+
 import java.sql.*;
+import java.io.IOException;
+import java.io.FileInputStream;
+import java.io.File;
+import java.util.Properties;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
-import com.mongodb.*;
-import org.bson.Document;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.FileInputStream;
-import java.io.File;
-import java.util.Properties;
 
 
 
@@ -44,7 +41,7 @@ public class PiwikConsumer {
     public static void main(String[] args) throws ClassNotFoundException, ParseException, IOException {
 
         if (args.length < 2) {
-            System.err.println("Usage: PiwikConsumer <broker> <topic>");
+            System.err.println("Usage: PiwikConsumer <spark> <broker> <topic>");
             System.exit(1);
         }
 
@@ -53,13 +50,13 @@ public class PiwikConsumer {
 
         final SparkConf conf = new SparkConf()
                 .setAppName(APPNAME)
-                .setMaster("local[*]");
+                .setMaster(args[0]);
 
         JavaSparkContext sc = new JavaSparkContext(conf);
         JavaStreamingContext ssc = new JavaStreamingContext(sc, Durations.seconds(1));
-        Set<String> topics = Collections.singleton(args[1]);
+        Set<String> topics = Collections.singleton(args[2]);
         Map<String, String> kafkaParams = new HashMap<>();
-        kafkaParams.put("metadata.broker.list", args[0]);
+        kafkaParams.put("metadata.broker.list", args[1]);
 
         Class.forName("com.mysql.cj.jdbc.Driver");
 
@@ -121,112 +118,112 @@ class JavaSparkSaveData {
                                 .append("kafka_push_uuid", rs.getString("kafka_push_uuid"))
                                 .append("idvisitor", rs.getString("idvisitor"))
                                 .append("idvisit", rs.getString("idvisit"))
-                                .append("user_id",rs.getString("user_id"))
-                                .append("config_id",rs.getString("config_id"))
-                                .append("server_time",rs.getTimestamp("server_time"))
-                                .append("url_id",rs.getString("url_id"))
-                                .append("url",rs.getString("url"))
-                                .append("url_prefix",rs.getString("url_prefix"))
-                                .append("url_action_type",rs.getString("url_action_type"))
-                                .append("page_title_id",rs.getString("page_title_id"))
-                                .append("page_title",rs.getString("page_title"))
+                                .append("user_id", rs.getString("user_id"))
+                                .append("config_id", rs.getString("config_id"))
+                                .append("server_time", rs.getTimestamp("server_time"))
+                                .append("url_id", rs.getString("url_id"))
+                                .append("url", rs.getString("url"))
+                                .append("url_prefix", rs.getString("url_prefix"))
+                                .append("url_action_type", rs.getString("url_action_type"))
+                                .append("page_title_id", rs.getString("page_title_id"))
+                                .append("page_title", rs.getString("page_title"))
                                 .append("page_title_action_type", rs.getString("page_title_action_type"))
-                                .append("event_action_id",rs.getString("event_action_id"))
-                                .append("event_action",rs.getString("event_action"))
-                                .append("event_action_type",rs.getString("event_action_type"))
-                                .append("event_category_id",rs.getString("event_category_id"))
-                                .append("event_category",rs.getString("event_category"))
-                                .append("event_categoryn_type",rs.getString("event_categoryn_type"))
-                                .append("content_interaction_id",rs.getString("content_interaction_id"))
-                                .append("content_interaction",rs.getString("content_interaction"))
-                                .append("content_interaction_type",rs.getString("content_interaction_type"))
-                                .append("content_name_id",rs.getString("content_name_id"))
-                                .append("content_name",rs.getString("content_name"))
-                                .append("content_name_type",rs.getString("content_name_type"))
-                                .append("content_piece_id",rs.getString("content_piece_id"))
-                                .append("content_piece",rs.getString("content_piece"))
-                                .append("content_piece_type",rs.getString("content_piece_type"))
-                                .append("content_target_id",rs.getString("content_target_id"))
-                                .append("content_target",rs.getString("content_target"))
-                                .append("content_target_type",rs.getString("content_target_type"))
-                                .append("url_ref_id",rs.getString("url_ref_id"))
-                                .append("url_ref",rs.getString("url_ref"))
-                                .append("url_ref_type",rs.getString("url_ref_type"))
-                                .append("name_ref_id",rs.getString("name_ref_id"))
-                                .append("name_ref",rs.getString("name_ref"))
-                                .append("name_ref_type",rs.getString("name_ref_type"))
-                                .append("entry_name_id",rs.getString("entry_name_id"))
-                                .append("entry_name",rs.getString("entry_name"))
-                                .append("entry_name_type",rs.getString("entry_name_type"))
-                                .append("entry_url_id",rs.getString("entry_url_id"))
-                                .append("entry_url",rs.getString("entry_url"))
-                                .append("entry_url_type",rs.getString("entry_url_type"))
-                                .append("exit_name_id",rs.getString("exit_name_id"))
-                                .append("exit_name",rs.getString("exit_name"))
-                                .append("exit_name_type",rs.getString("exit_name_type"))
-                                .append("exit_url_id",rs.getString("exit_url_id"))
-                                .append("exit_url",rs.getString("exit_url"))
-                                .append("exit_url_type",rs.getString("exit_url_type"))
-                                .append("custom_float",rs.getString("custom_float"))
-                                .append("custom_var_k1",rs.getString("custom_var_k1"))
-                                .append("custom_var_v1",rs.getString("custom_var_v1"))
-                                .append("custom_var_k2",rs.getString("custom_var_k2"))
-                                .append("custom_var_v2",rs.getString("custom_var_v2"))
-                                .append("custom_var_k3",rs.getString("custom_var_k3"))
-                                .append("custom_var_v3",rs.getString("custom_var_v3"))
-                                .append("custom_var_k4",rs.getString("custom_var_k4"))
-                                .append("custom_var_v4",rs.getString("custom_var_v4"))
-                                .append("custom_var_k5",rs.getString("custom_var_k5"))
-                                .append("custom_var_v5",rs.getString("custom_var_v5"))
-                                .append("custom_dimension_1",rs.getString("custom_dimension_1"))
-                                .append("custom_dimension_2",rs.getString("custom_dimension_2"))
-                                .append("custom_dimension_3",rs.getString("custom_dimension_3"))
-                                .append("custom_dimension_4",rs.getString("custom_dimension_4"))
-                                .append("custom_dimension_5",rs.getString("custom_dimension_5"))
-                                .append("time_spent",rs.getString("time_spent"))
-                                .append("time_spent_ref_action",rs.getString("time_spent_ref_action"))
+                                .append("event_action_id", rs.getString("event_action_id"))
+                                .append("event_action", rs.getString("event_action"))
+                                .append("event_action_type", rs.getString("event_action_type"))
+                                .append("event_category_id", rs.getString("event_category_id"))
+                                .append("event_category", rs.getString("event_category"))
+                                .append("event_categoryn_type", rs.getString("event_categoryn_type"))
+                                .append("content_interaction_id", rs.getString("content_interaction_id"))
+                                .append("content_interaction", rs.getString("content_interaction"))
+                                .append("content_interaction_type", rs.getString("content_interaction_type"))
+                                .append("content_name_id", rs.getString("content_name_id"))
+                                .append("content_name", rs.getString("content_name"))
+                                .append("content_name_type", rs.getString("content_name_type"))
+                                .append("content_piece_id", rs.getString("content_piece_id"))
+                                .append("content_piece", rs.getString("content_piece"))
+                                .append("content_piece_type", rs.getString("content_piece_type"))
+                                .append("content_target_id", rs.getString("content_target_id"))
+                                .append("content_target", rs.getString("content_target"))
+                                .append("content_target_type", rs.getString("content_target_type"))
+                                .append("url_ref_id", rs.getString("url_ref_id"))
+                                .append("url_ref", rs.getString("url_ref"))
+                                .append("url_ref_type", rs.getString("url_ref_type"))
+                                .append("name_ref_id", rs.getString("name_ref_id"))
+                                .append("name_ref", rs.getString("name_ref"))
+                                .append("name_ref_type", rs.getString("name_ref_type"))
+                                .append("entry_name_id", rs.getString("entry_name_id"))
+                                .append("entry_name", rs.getString("entry_name"))
+                                .append("entry_name_type", rs.getString("entry_name_type"))
+                                .append("entry_url_id", rs.getString("entry_url_id"))
+                                .append("entry_url", rs.getString("entry_url"))
+                                .append("entry_url_type", rs.getString("entry_url_type"))
+                                .append("exit_name_id", rs.getString("exit_name_id"))
+                                .append("exit_name", rs.getString("exit_name"))
+                                .append("exit_name_type", rs.getString("exit_name_type"))
+                                .append("exit_url_id", rs.getString("exit_url_id"))
+                                .append("exit_url", rs.getString("exit_url"))
+                                .append("exit_url_type", rs.getString("exit_url_type"))
+                                .append("custom_float", rs.getString("custom_float"))
+                                .append("custom_var_k1", rs.getString("custom_var_k1"))
+                                .append("custom_var_v1", rs.getString("custom_var_v1"))
+                                .append("custom_var_k2", rs.getString("custom_var_k2"))
+                                .append("custom_var_v2", rs.getString("custom_var_v2"))
+                                .append("custom_var_k3", rs.getString("custom_var_k3"))
+                                .append("custom_var_v3", rs.getString("custom_var_v3"))
+                                .append("custom_var_k4", rs.getString("custom_var_k4"))
+                                .append("custom_var_v4", rs.getString("custom_var_v4"))
+                                .append("custom_var_k5", rs.getString("custom_var_k5"))
+                                .append("custom_var_v5", rs.getString("custom_var_v5"))
+                                .append("custom_dimension_1", rs.getString("custom_dimension_1"))
+                                .append("custom_dimension_2", rs.getString("custom_dimension_2"))
+                                .append("custom_dimension_3", rs.getString("custom_dimension_3"))
+                                .append("custom_dimension_4", rs.getString("custom_dimension_4"))
+                                .append("custom_dimension_5", rs.getString("custom_dimension_5"))
+                                .append("time_spent", rs.getString("time_spent"))
+                                .append("time_spent_ref_action", rs.getString("time_spent_ref_action"))
                                 .append("location_ip, ", rs.getString("location_ip"))
-                                .append("visit_first_action_time",rs.getTimestamp("visit_first_action_time"))
-                                .append("visit_goal_buyer",rs.getString("visit_goal_buyer"))
-                                .append("visit_goal_converted",rs.getString("visit_goal_converted"))
-                                .append("visitor_days_since_first",rs.getString("visitor_days_since_first"))
-                                .append("visitor_days_since_order",rs.getString("visitor_days_since_order"))
-                                .append("visitor_returning",rs.getString("visitor_returning"))
-                                .append("visitor_count_visits",rs.getString("visitor_count_visits"))
-                                .append("visit_total_actions",rs.getString("visit_total_actions"))
-                                .append("visit_total_searches",rs.getString("visit_total_searches"))
-                                .append("referer_keyword",rs.getString("referer_keyword"))
-                                .append("referer_name",rs.getString("referer_name"))
-                                .append("referer_type",rs.getString("referer_type"))
-                                .append("referer_url",rs.getString("referer_url"))
-                                .append("location_browser_lang",rs.getString("location_browser_lang"))
-                                .append("config_browser_engine",rs.getString("config_browser_engine"))
-                                .append("config_browser_name",rs.getString("config_browser_name"))
-                                .append("config_browser_version",rs.getString("config_browser_version"))
-                                .append("config_device_brand",rs.getString("config_device_brand"))
-                                .append("config_device_model",rs.getString("config_device_model"))
-                                .append("config_device_type",rs.getString("config_device_type"))
-                                .append("config_os",rs.getString("config_os"))
-                                .append("config_os_version",rs.getString("config_os_version"))
-                                .append("visit_total_events",rs.getString("visit_total_events"))
-                                .append("visitor_localtime",rs.getTimestamp("visitor_localtime"))
-                                .append("visitor_days_since_last",rs.getString("visitor_days_since_last"))
-                                .append("config_resolution",rs.getString("config_resolution"))
-                                .append("config_cookie",rs.getString("config_cookie"))
-                                .append("config_director",rs.getString("config_director"))
-                                .append("config_flash",rs.getString("config_flash"))
-                                .append("config_gears",rs.getString("config_gears"))
-                                .append("config_java",rs.getString("config_java"))
-                                .append("config_pdf",rs.getString("config_pdf"))
-                                .append("config_quicktime",rs.getString("config_quicktime"))
-                                .append("config_realplayer",rs.getString("config_realplayer"))
-                                .append("config_silverlight",rs.getString("config_silverlight"))
-                                .append("config_windowsmedia",rs.getString("config_windowsmedia"))
-                                .append("visit_total_time",rs.getString("visit_total_time"))
-                                .append("location_city",rs.getString("location_city"))
-                                .append("location_country",rs.getString("location_country"))
-                                .append("location_latitude",rs.getString("location_latitude"))
-                                .append("location_longitude",rs.getString("location_longitude"))
+                                .append("visit_first_action_time", rs.getTimestamp("visit_first_action_time"))
+                                .append("visit_goal_buyer", rs.getString("visit_goal_buyer"))
+                                .append("visit_goal_converted", rs.getString("visit_goal_converted"))
+                                .append("visitor_days_since_first", rs.getString("visitor_days_since_first"))
+                                .append("visitor_days_since_order", rs.getString("visitor_days_since_order"))
+                                .append("visitor_returning", rs.getString("visitor_returning"))
+                                .append("visitor_count_visits", rs.getString("visitor_count_visits"))
+                                .append("visit_total_actions", rs.getString("visit_total_actions"))
+                                .append("visit_total_searches", rs.getString("visit_total_searches"))
+                                .append("referer_keyword", rs.getString("referer_keyword"))
+                                .append("referer_name", rs.getString("referer_name"))
+                                .append("referer_type", rs.getString("referer_type"))
+                                .append("referer_url", rs.getString("referer_url"))
+                                .append("location_browser_lang", rs.getString("location_browser_lang"))
+                                .append("config_browser_engine", rs.getString("config_browser_engine"))
+                                .append("config_browser_name", rs.getString("config_browser_name"))
+                                .append("config_browser_version", rs.getString("config_browser_version"))
+                                .append("config_device_brand", rs.getString("config_device_brand"))
+                                .append("config_device_model", rs.getString("config_device_model"))
+                                .append("config_device_type", rs.getString("config_device_type"))
+                                .append("config_os", rs.getString("config_os"))
+                                .append("config_os_version", rs.getString("config_os_version"))
+                                .append("visit_total_events", rs.getString("visit_total_events"))
+                                .append("visitor_localtime", rs.getTimestamp("visitor_localtime"))
+                                .append("visitor_days_since_last", rs.getString("visitor_days_since_last"))
+                                .append("config_resolution", rs.getString("config_resolution"))
+                                .append("config_cookie", rs.getString("config_cookie"))
+                                .append("config_director", rs.getString("config_director"))
+                                .append("config_flash", rs.getString("config_flash"))
+                                .append("config_gears", rs.getString("config_gears"))
+                                .append("config_java", rs.getString("config_java"))
+                                .append("config_pdf", rs.getString("config_pdf"))
+                                .append("config_quicktime", rs.getString("config_quicktime"))
+                                .append("config_realplayer", rs.getString("config_realplayer"))
+                                .append("config_silverlight", rs.getString("config_silverlight"))
+                                .append("config_windowsmedia", rs.getString("config_windowsmedia"))
+                                .append("visit_total_time", rs.getString("visit_total_time"))
+                                .append("location_city", rs.getString("location_city"))
+                                .append("location_country", rs.getString("location_country"))
+                                .append("location_latitude", rs.getString("location_latitude"))
+                                .append("location_longitude", rs.getString("location_longitude"))
                                 .append("location_region", rs.getString("location_region"))
                 );
                 System.out.println("Document created successfully");
