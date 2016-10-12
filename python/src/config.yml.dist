@@ -1,0 +1,14 @@
+piwik_consumer:
+  appname: simple-app-streaming
+  mysql:
+    host: MYSQL_HOST
+    user: MYSQL_USER
+    pass: MYSQL_PASS
+    db: MYSQL_DN
+    charset: MYSQL_CHARSET
+  mongodb:
+    url: mongodb://MONGODB_HOST:MONGODB_PORT/
+    host: MONGODB_HOST
+    port: MONGODB_PORT
+    db: MONGODB_DB
+    collection: MONGODB_COLLECTION
