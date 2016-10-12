@@ -1,0 +1,16 @@
+#
+# This file is part of the Bruery Platform.
+#
+# (c) Viktore Zara <viktore.zara@gmail.com>
+#
+# Copyright (c) 2016. For the full copyright and license information, please view the LICENSE  file that was distributed with this source code.
+#
+appname=simple-app-streaming
+mysql.url=jdbc:mysql://localhost:3306/PIWIK_DB?autoReconnect=true&useSSL=false
+mysql.user=MYSQL_USER
+mysql.pass=MYSQL_PASSS
+mysql.db=MYSQL_DB
+mongo.host=MONGO_HOST
+mongo.port=MONGO_POST
+mongo.db=MONGO_DB
+mongo.collection=MONGO_COLLECTION
